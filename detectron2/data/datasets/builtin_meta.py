@@ -1,6 +1,11 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) Facebook, Inc. and its affiliates.
 
+TABLE_TENNIS_CATEGORIES = [
+    {"color": [220, 20, 60], "isthing": 1, "id": 1, "name": "paddle"},
+    {"color": [119, 11, 32], "isthing": 1, "id": 2, "name": "person"},
+]
+
 """
 Note:
 For your custom dataset, there is no need to hard-code metadata anywhere in the code.
@@ -264,9 +269,7 @@ def _get_coco_panoptic_separated_meta():
 
     # 54 names for COCO stuff categories (including "things")
     stuff_classes = ["things"] + [
-        k["name"].replace("-other", "").replace("-merged", "")
-        for k in COCO_CATEGORIES
-        if k["isthing"] == 0
+        k["name"].replace("-other", "").replace("-merged", "") for k in COCO_CATEGORIES if k["isthing"] == 0
     ]
 
     # NOTE: I randomly picked a color for things
