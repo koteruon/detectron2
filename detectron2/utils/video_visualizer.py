@@ -1,15 +1,12 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
-import numpy as np
+import time
 from typing import List
+
+import numpy as np
 import pycocotools.mask as mask_util
 
 from detectron2.structures import Instances
-from detectron2.utils.visualizer import (
-    ColorMode,
-    Visualizer,
-    _create_text_labels,
-    _PanopticPrediction,
-)
+from detectron2.utils.visualizer import ColorMode, Visualizer, _create_text_labels, _PanopticPrediction
 
 from .colormap import random_color, random_colors
 
@@ -81,11 +78,7 @@ class VideoVisualizer:
         colors = predictions.COLOR if predictions.has("COLOR") else [None] * len(predictions)
         periods = predictions.ID_period if predictions.has("ID_period") else None
         period_threshold = self.metadata.get("period_threshold", 0)
-        visibilities = (
-            [True] * len(predictions)
-            if periods is None
-            else [x > period_threshold for x in periods]
-        )
+        visibilities = [True] * len(predictions) if periods is None else [x > period_threshold for x in periods]
 
         if predictions.has("pred_masks"):
             masks = predictions.pred_masks
@@ -111,23 +104,15 @@ class VideoVisualizer:
         if self._instance_mode == ColorMode.IMAGE_BW:
             # any() returns uint8 tensor
             frame_visualizer.output.reset_image(
-                frame_visualizer._create_grayscale_image(
-                    (masks.any(dim=0) > 0).numpy() if masks is not None else None
-                )
+                frame_visualizer._create_grayscale_image((masks.any(dim=0) > 0).numpy() if masks is not None else None)
             )
             alpha = 0.3
         else:
             alpha = 0.5
 
-        labels = (
-            None
-            if labels is None
-            else [y[0] for y in filter(lambda x: x[1], zip(labels, visibilities))]
-        )  # noqa
+        labels = None if labels is None else [y[0] for y in filter(lambda x: x[1], zip(labels, visibilities))]  # noqa
         assigned_colors = (
-            None
-            if colors is None
-            else [y[0] for y in filter(lambda x: x[1], zip(colors, visibilities))]
+            None if colors is None else [y[0] for y in filter(lambda x: x[1], zip(colors, visibilities))]
         )  # noqa
         frame_visualizer.overlay_instances(
             boxes=None if masks is not None else boxes[visibilities],  # boxes are a bit distracting
@@ -152,16 +137,12 @@ class VideoVisualizer:
         frame_visualizer.draw_sem_seg(sem_seg, area_threshold=None)
         return frame_visualizer.output
 
-    def draw_panoptic_seg_predictions(
-        self, frame, panoptic_seg, segments_info, area_threshold=None, alpha=0.5
-    ):
+    def draw_panoptic_seg_predictions(self, frame, panoptic_seg, segments_info, area_threshold=None, alpha=0.5):
         frame_visualizer = Visualizer(frame, self.metadata)
         pred = _PanopticPrediction(panoptic_seg, segments_info, self.metadata)
 
         if self._instance_mode == ColorMode.IMAGE_BW:
-            frame_visualizer.output.reset_image(
-                frame_visualizer._create_grayscale_image(pred.non_empty_mask())
-            )
+            frame_visualizer.output.reset_image(frame_visualizer._create_grayscale_image(pred.non_empty_mask()))
 
         # draw mask for all semantic segments first i.e. "stuff"
         for mask, sinfo in pred.semantic_masks():
@@ -185,9 +166,7 @@ class VideoVisualizer:
         # draw mask for all instances second
         masks, sinfo = list(zip(*all_instances))
         num_instances = len(masks)
-        masks_rles = mask_util.encode(
-            np.asarray(np.asarray(masks).transpose(1, 2, 0), dtype=np.uint8, order="F")
-        )
+        masks_rles = mask_util.encode(np.asarray(np.asarray(masks).transpose(1, 2, 0), dtype=np.uint8, order="F"))
         assert len(masks_rles) == num_instances
 
         category_ids = [x["category_id"] for x in sinfo]
