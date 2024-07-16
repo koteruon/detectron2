@@ -3,7 +3,7 @@
 
 TABLE_TENNIS_CATEGORIES = [
     {"color": [220, 20, 60], "isthing": 1, "id": 1, "name": "paddle"},
-    {"color": [119, 11, 32], "isthing": 1, "id": 2, "name": "person"},
+    # {"color": [119, 11, 32], "isthing": 1, "id": 2, "name": "person"},
 ]
 
 """
@@ -237,6 +237,20 @@ ADE20K_SEM_SEG_CATEGORIES = [
 # fmt: on
 
 
+def _get_table_tennis_instances_meta():
+    thing_ids = [k["id"] for k in TABLE_TENNIS_CATEGORIES if k["isthing"] == 1]
+    thing_colors = [k["color"] for k in TABLE_TENNIS_CATEGORIES if k["isthing"] == 1]
+    # Mapping from the incontiguous COCO category id to an id in [0, 79]
+    thing_dataset_id_to_contiguous_id = {k: i for i, k in enumerate(thing_ids)}
+    thing_classes = [k["name"] for k in TABLE_TENNIS_CATEGORIES if k["isthing"] == 1]
+    ret = {
+        "thing_dataset_id_to_contiguous_id": thing_dataset_id_to_contiguous_id,
+        "thing_classes": thing_classes,
+        "thing_colors": thing_colors,
+    }
+    return ret
+
+
 def _get_coco_instances_meta():
     thing_ids = [k["id"] for k in COCO_CATEGORIES if k["isthing"] == 1]
     thing_colors = [k["color"] for k in COCO_CATEGORIES if k["isthing"] == 1]
@@ -284,6 +298,8 @@ def _get_coco_panoptic_separated_meta():
 
 
 def _get_builtin_metadata(dataset_name):
+    if dataset_name == "table_tennis":
+        return _get_table_tennis_instances_meta()
     if dataset_name == "coco":
         return _get_coco_instances_meta()
     if dataset_name == "coco_panoptic_separated":
